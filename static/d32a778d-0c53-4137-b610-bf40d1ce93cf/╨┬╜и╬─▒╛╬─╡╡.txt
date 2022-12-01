@@ -1,0 +1,107 @@
+#Clock
+set_property -dict {PACKAGE_PIN D18 IOSTANDARD LVCMOS33}
+[get_ports clock] ;#50MHz main clock in
+set_property -dict {PACKAGE_PIN F22 IOSTANDARD LVCMOS33}
+[get_ports rst] ;#BTN6
+#DPY0
+set_property IOSTANDARD LVCMOS33 [get_ports seg1[*]]
+set_property PACKAGE_PIN F15 [get_ports {seg1[2]}]
+set_property PACKAGE_PIN H15 [get_ports {seg1[3]}]
+set_property PACKAGE_PIN G15 [get_ports {seg1[4]}]
+set_property PACKAGE_PIN H16 [get_ports {seg1[1]}]
+set_property PACKAGE_PIN H14 [get_ports {seg1[0]}]
+set_property PACKAGE_PIN G19 [get_ports {seg1[5]}]
+set_property PACKAGE_PIN J8 [get_ports {seg1[6]}]
+#DPY2
+set_property IOSTANDARD LVCMOS33 [get_ports seg2[*]]
+set_property PACKAGE_PIN G8 [get_ports {seg2[2]}]
+set_property PACKAGE_PIN G7 [get_ports {seg2[3]}]
+set_property PACKAGE_PIN G6 [get_ports {seg2[4]}]
+set_property PACKAGE_PIN D6 [get_ports {seg2[1]}]
+set_property PACKAGE_PIN E5 [get_ports {seg2[0]}]
+set_property PACKAGE_PIN F4 [get_ports {seg2[5]}]
+set_property PACKAGE_PIN G5 [get_ports {seg2[6]}]
+set_property CFGBVS VCCO [current_design]
+set_property CONFIG_VOLTAGE 3.3 [current_design]
+
+`timescale 1ns / 1ps
+
+
+
+module clock(
+input wire clock,
+input wire rst,
+output reg[6:0] seg1,
+output reg[6:0] seg2
+);
+reg[3:0] cnt_L = 4'b0000;
+reg[3:0] cnt_H = 4'b0000;
+reg[25:0] cnt = 26'b00000000000000000000000000;
+reg clk_out;
+reg[3:0] tmp_H = 4'b0000;
+reg[3:0] tmp_L = 4'b0000;
+always @ (posedge clock)
+begin
+cnt <= cnt + 1;
+if(cnt == 26'b00_0000_0000_0000_0000_0000_0000)
+clk_out <= 0;
+if(cnt == 26'b10_1111_1010_1111_0000_1000_0000) //计数50000000 次， 1 秒钟
+begin
+cnt <= 26'b00_0000_0000_0000_0000_0000_0000;
+clk_out <= 1;
+end
+end
+always @(posedge clk_out or posedge rst) //将秒数转换成输出的格式
+begin
+if(rst == 1)
+begin
+tmp_H = 4'b0000;
+tmp_L = 4'b0000;
+end
+else
+begin
+tmp_L = cnt_L + 1;
+if(tmp_L > 4'b1001)
+begin
+tmp_L = 4'b0000;
+tmp_H = cnt_H + 1;
+if (tmp_H > 4'b1001)
+tmp_H = 4'b0000;
+end
+end
+cnt_L = tmp_L;
+cnt_H = tmp_H;
+end
+always @(cnt_L) //将秒表的个位数输出到数码管
+begin
+case(cnt_L)
+4'b0000: seg1 = 7'b0111111;
+4'b0001: seg1 = 7'b0000110;
+4'b0010: seg1 = 7'b1011011;
+4'b0011: seg1 = 7'b1001111;
+4'b0100: seg1 = 7'b1100110;
+4'b0101: seg1 = 7'b1101101;
+4'b0110: seg1 = 7'b1111101;
+4'b0111: seg1 = 7'b0000111;
+4'b1000: seg1 = 7'b1111111;
+4'b1001: seg1 = 7'b1101111;
+default: seg1 = 7'b0000000;
+endcase
+end
+always @(cnt_H) //将秒表的十位数输出到数码管
+begin
+case(cnt_H)
+4'b0000: seg2 = 7'b0111111;
+4'b0001: seg2 = 7'b0000110;
+4'b0010: seg2 = 7'b1011011;
+4'b0011: seg2 = 7'b1001111;
+4'b0100: seg2 = 7'b1100110;
+4'b0101: seg2 = 7'b1101101;
+4'b0110: seg2 = 7'b1111101;
+4'b0111: seg2 = 7'b0000111;
+4'b1000: seg2 = 7'b1111111;
+4'b1001: seg2 = 7'b1101111;
+default: seg2 = 7'b0000000;
+endcase
+end
+endmodule

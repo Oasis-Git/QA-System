@@ -1,0 +1,66 @@
+plugins {
+    id 'org.springframework.boot' version '2.5.5'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'java'
+    id 'jacoco'
+}
+
+group = 'app.brace'
+version = '0.2.1-SNAPSHOT'
+// noinspection GroovyUnusedAssignment
+sourceCompatibility = '17'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    maven { url 'https://maven.aliyun.com/repository/public' }
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'one.util:streamex:0.7.3'
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa:2.5.5'
+    implementation 'org.springframework.boot:spring-boot-starter-hateoas:2.5.5'
+    implementation 'org.springframework.boot:spring-boot-starter-security:2.5.5'
+    implementation 'org.springframework.boot:spring-boot-starter-validation:2.5.5'
+    implementation 'org.springframework.boot:spring-boot-starter-web:2.5.5'
+    implementation 'org.jetbrains:annotations:22.0.0'
+    implementation 'org.web3j:tuples:5.0.0'
+    compileOnly 'org.projectlombok:lombok:1.18.22'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools:2.5.5'
+    runtimeOnly 'org.postgresql:postgresql:42.3.1'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor:2.5.6'
+    annotationProcessor 'org.projectlombok:lombok:1.18.22'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testImplementation 'org.junit.platform:junit-platform-commons:1.8.1'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test:2.5.6'
+    testImplementation 'org.springframework.security:spring-security-test:5.5.1'
+    testCompileOnly 'org.assertj:assertj-core:3.21.0'
+    testCompileOnly 'org.projectlombok:lombok:1.18.22'
+    testRuntimeOnly 'com.h2database:h2:1.4.200'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
+
+    //for jwt
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.2'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.2'
+
+    //for io socket
+    implementation 'com.corundumstudio.socketio:netty-socketio:1.7.19'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+    }
+}

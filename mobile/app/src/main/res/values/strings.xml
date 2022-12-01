@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">brace-mobile</string>
+    <string name="title_home">个人中心</string>
+    <string name="title_questions">问答库</string>
+    <string name="title_respondents">回答者</string>
+    <string name="client_base_url">https://proxy-brace.app.secoder.net/</string>
+</resources>

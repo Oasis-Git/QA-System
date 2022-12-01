@@ -1,0 +1,63 @@
+stages:
+  - lint
+  - style
+  - test
+  - build
+  - deploy
+
+.backend:
+  image: openjdk:latest
+  cache:
+    key: backend
+    paths:
+      - .gradle/
+      - build
+
+.secoder:
+  image: registry.secoder.net/tool/deployer
+  only:
+    - master
+    - develop
+
+backend-test:
+  extends: .backend
+  stage: test
+  before_script:
+    - mkdir -p /tmp/brace/static
+    - echo "upload.static-dir=/tmp/brace/static" >> src/test/resources/static.properties
+    - echo "upload.static-base-url=/resource" >> src/test/resources/static.properties
+    - chmod +x gradlew
+  script:
+    - ./gradlew test
+  after_script:
+    - ./gradlew jacocoTestReport
+    - curl http://10.0.0.11/sonar-scanner.tar.gz -s -o /tmp/sonar-scanner.tar.gz
+    - tar -xf /tmp/sonar-scanner.tar.gz -C /opt
+    - /opt/sonar-scanner/bin/sonar-scanner
+
+backend-build:
+  extends: .secoder
+  stage: build
+  needs:
+    - backend-test
+  variables:
+    BUILD_IMAGE_NAME: $CI_REGISTRY_IMAGE
+    BUILD_IMAGE_TAG: $CI_COMMIT_REF_SLUG
+    BUILD_IMAGE_USERNAME: $CI_REGISTRY_USER
+    BUILD_IMAGE_PASSWORD: $CI_REGISTRY_PASSWORD
+  before_script:
+    - echo "spring.datasource.url=jdbc:postgresql://database.brace.secoder.local:5432/brace"
+      >> src/main/resources/database.properties
+    - echo "spring.datasource.username=postgres" >> src/main/resources/database.properties
+    - echo "spring.datasource.password=$DEPLOY_TOKEN" >> src/main/resources/database.properties
+    - echo "admin.root-password=$DEPLOY_TOKEN" >> src/main/resources/secret.properties
+  script:
+    - deployer build
+
+backend-deploy:
+  extends: .secoder
+  stage: deploy
+  needs:
+    - backend-build
+  script:
+    - deployer dyno replace $CI_PROJECT_NAME "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" "$REGISTRY_USER" "$REGISTRY_PWD"

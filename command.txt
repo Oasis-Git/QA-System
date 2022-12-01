@@ -1,0 +1,2 @@
+./gradlew build
+java -D'server.port=65530' -jar .\build\libs\server-0.1.1-SNAPSHOT.jar
